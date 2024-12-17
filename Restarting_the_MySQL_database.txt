@@ -1,0 +1,10 @@
+Restarting the MySQL database
+
+1. Check for the environment like aws,gcp,ibm - oneexiger.local will be in aws.
+2. Login to the specific server using "ssh <server_name>". 
+3. Check the memory using free -h . If free memory space is less then restart the mysql service.
+4. Before doing that check the status of the service you can do this only as a root user. So, go to root by using sudo su and check the status "systemctl status MySQL".
+5. Check the logs whether it is connection establishment failure or what.
+6. Then restart the mysql service using "systemctl restart mysql" . It takes some time
+7. Now go to argocd and sync the applications which have become down. Do the sync along with prune.
+8. Once everything is synced and got healthy then msg to the concerned person to check.

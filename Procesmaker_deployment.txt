@@ -1,0 +1,7 @@
+1. Created Kubernetes cluster with 3 nodes by using kops create cluster.
+2. Then I have created a MySQL RDS manually. 
+3. Then created efs manually.
+4. Created aws-auth file with my aws userarn and username.
+5. Then tried to install the load balancer controller, by giving all my details like cluster name and vpcid, region etc. as mentione in the exiger document. Got an error as "cannot re-use a name that is still in use". So, I just updated instead of installing.
+6. For ingress controller installation i have followed the steps but got issues and struck over there.
+7. Thought of skipping those steps and tried of deploying the processmaker directly. but it has not worked. 

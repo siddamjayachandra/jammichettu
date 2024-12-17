@@ -1,0 +1,17 @@
+1. we need to setup a Kubernetes cluster with 3 nodes. The nodes should be created with the specifications given in the document.
+2. Need to create an MySQL database with the specifications mentioned in the document.
+3. One Rancher service need to created with the required specifications.
+4. we require two domains with ssl certificates.
+5. Maintain the dns records with the ingress public ip's.
+6. Import the eks cluster into the rancher with the steps mentioned in the document.
+7. Install longhorn from the rancher UI.
+8. Need to setup the ingress nginx service. with the following setups 
+       a. EKS cluster prerequisites like vpc, kube-proxy, coreDNS.
+       b. ALB subnets - add the tags to the proper subnets. so that the load balancer picksup the correct subnet while creating the load balancer controller.
+       c. security policies - need to check we have the necessary access in the cluster and follow all the setups in the document.
+       d. Install AWS load balancer controller - using the helm along with few variables like clustername, vpcid, region.
+       e. Install nginx ingress controller - using the helm. It must be installed with the type as nodeport instead of loadbalancer. To confirm that there is no extra load balancers are created.
+       f. Ingress creation - once done with the installation follow the steps as per the document. 
+       g. EFS installation - check the prerequisites that are required for EFS in the document provided. You should run the scripts where you have aws, eksctl access for installing the storage class by following the document.
+9. Now deploy the processmaker instance by adding the processmaker helm repository and by following all the other steps as mentioned in the document.
+  

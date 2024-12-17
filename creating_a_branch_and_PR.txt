@@ -1,0 +1,20 @@
+creating a branch :
+
+1. Open the ticket and create a branch from there.
+2. Select the repository from where you want to create a bucket. The name will be present in the ticket if you are modifying the files.
+3. Give the name of the bucket. Then create a bucket and copy the name of the bucket git checkout branch_name.
+4. Open the repository in the visual studio code and go to the specific files.
+5. Check the git status.
+6. Go to the master now. By giving git checkout master.
+7. Now pull the files. By using git pull.
+8. Now checkout to your branch by pasting the command you have copied while creating the branch refer line 3.git checkout branch_name.
+9. Do the modifications to the files and save the file.
+10. Check the status now. It will show you the modified file.
+11. Check the modifications you have made by using git diff. It shows the changes you have made.
+12. Now add the files by using git add . .
+13. Commit the changes now by using git commit -m "commit message".
+14. Now push the code to branch by using git push. If you are in your branch no need to give the branch name.
+15. Create a pull request in the ticket.
+16. It will run the terraform plan to show you the changes. It shows what are all the changes is going to happen when you merge the file.
+17. Now add the reviewers to your pull request and then share the url of the PR to concern person or group.
+18. Once you got approval then merge the file. It runs the terraform apply now.

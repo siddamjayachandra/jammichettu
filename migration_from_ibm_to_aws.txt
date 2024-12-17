@@ -1,0 +1,43 @@
+1. Create the new instance for the database using the terraform. determine the correct sizes for the db.
+2. Create a backup bucket where it can be accessed by the user(client) here it is qws-g. 
+3. Now the db should be accessed by the user. And also create the lables for ansible give MySQL and client give the name of the client.
+4. Specify all the required details such as walg_xtrabackup_transition_key, walg_gcs_bucket, mysql_vault_url, mysql_vault_ca_cert, mysql_vault_token in the group_vars/label_client_<CLIENT_NAME>.yml file under aws-server-config.
+5. Now check the inventory file if the new database sever has been created successfully. under MySQL group you should see the aws-server-config name. by using "ansible-inventory -i inventory-aws.yml --graph".
+6. Install the MySQL and wal-g backup client by running the ansible playbook limiting that to the newly created server "ansible-playbook -i inventory-aws.yml site.yml --limit=NEW_DB_SERVER".
+7. Once MySQL is installed check for the backup storages. As "sudo wal-g backup-list". You will get no backups found if it can reach the storage.
+8. Replicate MySQL from the server where you are migrating to the server where you are deploying (for example IBM to AWS).
+9. Restore MySQL backup from IBM by copying files from IBM to aws and need to edit the aws_endpoint. Once everything is done you will be able to see the backups from IBM in your db server by using "wal-g backup-list". Now restore the backup by using "walg-mysql-restore NAME_OF_BACKUP". It will take nearly 5 hours.
+10. Through ssh tunnel establish the replication from IBM to aws. Add the ssh key from one password to the /root/.ssh/id_rsa on the aws db and run the command to change the permissions "chmod 400 /root/.ssh/id_rsa".
+11. Add the aws_tunnel user to the appropriate db in the ops-server-config:ipausers.yml and apply the change by running ansible "ansible-playbook -i hosts.infra ipausers.yml --tags=hbac".
+12. SSH to the IBM DB using monprdssh01 as a jump host and port forward to port 3307. By running the "ssh -A -J aws-tunnel@169.54.95.231 -L 3307:localhost:3306 aws-tunnel@PRIVATE.IP.OF.IBM_DATABASE".
+13. on the IBM db you should have user for replication. get the user by using "SELECT user, host FROM mysql.user;". you should see a user called “repuser” or something like that. If no user present create one user by running 
+            CREATE USER 'repuser'@'%' IDENTIFIED BY 'some_password';
+            GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'repuser'@'%';
+            FLUSH PRIVILEGES;
+14. On the aws db check whether you can login to the repuser or not by running "mysql -u repuser -p -h 127.0.0.1 -P 3307".
+15. On the aws db, set the SSH tunnel as the replication master and start replication by running "CHANGE MASTER TO MASTER_HOST='127.0.0.1', MASTER_PORT=3307, MASTER_USER='repuser', MASTER_PASSWORD='some_password', MASTER_AUTO_POSITION=1;
+START SLAVE;".
+16. Check the status of the replication by using "SHOW SLAVE STATUS\G". The Seconds_behind_master should get decrease and reach to zero then we can confirm that our aws db is "in-sync". If not we have missed some of the steps above. and start the process from 10th point.
+17. Make some changes to the db server by following
+      -- Fix the root user's authentication method after being restored from backups
+      ALTER USER 'root'@'localhost' IDENTIFIED WITH auth_socket;
+
+     -- revoke file permissions from oiquser and dataminer
+     REVOKE FILE ON *.* FROM 'oiquser'@'%';
+     REVOKE FILE ON *.* FROM 'dataminer'@'%';
+
+     -- require ssl for oiquser/dataminer
+     ALTER USER 'oiquser'@'%' REQUIRE SSL;
+     ALTER USER 'dataminer'@'%' REQUIRE SSL;
+
+     -- Change the password for oiquser to a new password 
+     -- You need this new password for the argocd-secrets.json/Vault step later on
+     -- Use "pwgen -y 16 1" to generate an appropriate password
+     ALTER USER 'oiquser'@'%' IDENTIFIED BY 'new_password_here';
+
+     -- DO NOT use "RENAME USER" to rename the user to a more specific CIDR, this will
+     -- break access to a number of views managed by DDIQ's liquibase migrations
+18. To reset the backup configuration on aws MySQL server run the ansible again by using "ansible-playbook -i inventory-aws.yml site.yml --limit=DB_SERVER_NAME. wal-g backup-list". It shows the backups again.
+19. Once our aws db is in sync with our IBM db stop the replication by using "mysql -e 'STOP SLAVE;'".
+20. Now encrypt the db tables by using "encrypt-db.py --lock-tables db_being_migrated db_being_migrated_quartz db_being_migrated_usersessions".
+21. Again restart the replication by using "mysql -e 'START SLAVE;'".  

@@ -1,0 +1,29 @@
+cluster creation -
+kops create cluster --name=kops.vkltoys.shop --state=s3://vkltoys --zones=ap-south-1a,ap-south-1b,ap-south-1c  --node-count=3 --control-plane-count=1 --node-size=t3.medium --control-plane-size=t3.medium --control-plane-zones=ap-south-1a --control-plane-volume-size 10 --node-volume-size 10 --ssh-public-key ~/.ssh/id_rsa.pub --dns-zone=kops.vkltoys.shop --networking calico --yes
+
+Deleting cluster -
+kops delete cluster --name=kops.vkltoys.shop --state s3://vkltoys --yes
+
+deleting deployment, service -
+ k delete deploy,svc --all
+
+creating new deployment from image -
+ kubectl create deployment app1 --image=sreeharshav/rollingupdate:v5 --dry-run -o yaml
+
+creating service for the deployment -
+kubectl expose deployment app_name --port 80 --type LoadBalancer
+once you execute this go to k edit svc svc_name and edit the file. give the target port that you have mentioned in the container port in the application file.
+
+Exposing externally -
+apiVersion: v1
+kind: Service
+metadata:
+  name: app1
+spec:
+  selector:
+    app: app1  # Your application label
+  ports:
+    - protocol: TCP
+      port: 80         # External port to access the app
+      targetPort: 30646  # Internal port your app listens on inside the pod
+  type: LoadBalancer
