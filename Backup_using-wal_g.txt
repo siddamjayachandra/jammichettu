@@ -1,0 +1,25 @@
+Installed wal-g taking up the backups of postgresql. configured them with the aws s3 bucket.
+
+By definig the bucket name and user access_key_id and secret_access_key 
+
+export WALG_S3_PREFIX=s3://pandemkodi/backup-folder
+export WALG_S3_PREFIX=s3://pandemkodi
+export AWS_ACCESS_KEY_ID=AKIA23LPSDA2D2ZJ2FAE
+export AWS_SECRET_ACCESS_KEY=
+export AWS_DEFAULT_REGION=ap-south-1
+
+Now install the PostgreSQL.
+
+setup the configurations in the "/etc/postgresql/17/main/postgresql.conf". Define the version of your PostgreSQL by using "pg_lsclusters"
+
+archive_mode = on
+archive_command = 'wal-g wal-push %p'
+max_wal_senders = 10
+wal_level = replica
+max_replication_slots = 1
+
+Now take the backup by using the "wal-g backup-push path_where_the_postgresql_present(/var/lib/postgresql/17/main)".
+
+This will take the backup of total PostgreSQL.
+
+
