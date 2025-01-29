@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Prompt the user for input
+echo "Please enter the directory containing log files: "
+read LOG_DIR
+
+echo "Please enter the S3 bucket name (e.g., s3://your-bucket-name): "
+read S3_BUCKET
+
+echo "Please enter the path to the logrotate configuration file: "
+read LOGROTATE_CONFIG
+
+# Number of recent files to keep locally
+KEEP_COUNT=5
+
+# Rotate logs using logrotate
+logrotate "$LOGROTATE_CONFIG"
+
+# Find all log files (both compressed and uncompressed), sorted by version
+LOG_FILES=($(ls -1 "$LOG_DIR"/access.log.*{,.gz} 2>/dev/null | sort -V))
+
+# Debug: List all detected log files
+echo "Detected files: ${LOG_FILES[@]}"
+
+# Check if there are enough files to process
+if [ ${#LOG_FILES[@]} -le $KEEP_COUNT ]; then
+    echo "No older files to process. Total files: ${#LOG_FILES[@]}"
+    exit 0
+fi
+
+# Process files beyond the latest KEEP_COUNT
+for ((i=$KEEP_COUNT; i<${#LOG_FILES[@]}; i++)); do
+    LOGFILE="${LOG_FILES[i]}"
+
+    # Debug: Verify the full path
+    echo "Uploading: $LOGFILE"
+
+    # Upload the file to S3
+    aws s3 cp "$LOGFILE" "$S3_BUCKET"
+
+    # Check if the upload was successful
+    if [ $? -eq 0 ]; then
+        echo "Uploaded: $LOGFILE"
+    else
+        echo "Failed to upload: $LOGFILE"
+    fi
+done
