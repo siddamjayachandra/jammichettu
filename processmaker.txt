@@ -13,5 +13,5 @@
        e. Install nginx ingress controller - using the helm. It must be installed with the type as nodeport instead of loadbalancer. To confirm that there is no extra load balancers are created.
        f. Ingress creation - once done with the installation follow the steps as per the document. 
        g. EFS installation - check the prerequisites that are required for EFS in the document provided. You should run the scripts where you have aws, eksctl access for installing the storage class by following the document.
-9. Now deploy the processmaker instance by adding the processmaker helm repository and by following all the other steps as mentioned in the document.
+9. Now deploy the processmaker instance by adding the processmaker helm repository and by following all the other steps as mentioned in the document of the exiger.
   
